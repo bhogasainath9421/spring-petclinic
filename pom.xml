@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.springframework.samples</groupId>
@@ -10,8 +10,9 @@
     <packaging>war</packaging>
 
     <properties>
+
         <!-- Generic properties -->
-        <java.version>17</java.version>
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -38,7 +39,7 @@
         <dandelion.version>1.1.1</dandelion.version>
         <dandelion.datatables.version>1.1.0</dandelion.datatables.version>
 
-        <!-- Removed Cobertura version property as it's replaced by JaCoCo -->
+        <cobertura.version>2.7</cobertura.version>
 
     </properties>
 
@@ -56,31 +57,6 @@
     </dependencyManagement>
 
     <dependencies>
-        
-        <!-- === START: JAXB Dependencies for JDK 9+ Compatibility (Fixes "package javax.xml.bind.annotation does not exist") === -->
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>2.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-        <!-- === END: JAXB Dependencies === -->
-
-        <!-- ORIGINAL DEPENDENCIES - KEEPING THESE TO ENSURE THE APPLICATION WORKS -->
         <dependency>
             <groupId>org.jadira.usertype</groupId>
             <artifactId>usertype.core</artifactId>
@@ -112,7 +88,7 @@
             <groupId>org.apache.taglibs</groupId>
             <artifactId>taglibs-standard-jstlel</artifactId>
         </dependency>
-        <!-- JSon -->
+        <!--  JSon -->
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
@@ -137,7 +113,7 @@
                     <groupId>org.springframework</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
-                <!-- because Spring Data usually comes with a slightly older version of Spring -->
+                <!--  because Spring Data usually comes with a slightly older version of Spring -->
             </exclusions>
         </dependency>
 
@@ -169,7 +145,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Database connection pool -->
+        <!-- Database connection pool
+        See here for more details on commons-dbcp versus tomcat-jdbc:
+        http://blog.ippon.fr/2013/03/13/improving-the-performance-of-the-spring-petclinic-sample-application-part-3-of-5/
+    -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jdbc</artifactId>
@@ -210,13 +189,12 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- For MySql only 
-        <dependency>
+        <!-- For MySql only -->
+        <!--dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql-driver.version}</version>
-        </dependency>
-        -->
+        </dependency-->
 
         <!-- HIBERNATE -->
         <dependency>
@@ -288,13 +266,11 @@
             <version>${dandelion.datatables.version}</version>
         </dependency>
         <!-- temporary fix: below dependency should not be necessary as it is a transitive dependency.
-         For some reason we can't build the app unless it is a first level dependency -->
+        For some reason we can't build the app unless it is a first level dependency -->
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
         </dependency>
-        <!-- END OF ORIGINAL DEPENDENCIES -->
-        
     </dependencies>
 
     <!-- Maven plugin versions are mentioned in order to guarantee the build reproducibility in the long term -->
@@ -302,7 +278,7 @@
         <defaultGoal>install</defaultGoal>
         <testResources>
             <testResource>
-                <!-- declared explicitly so Spring config files can be placed next to their corresponding JUnit test class -->
+                <!-- declared explicitly so Spring config files can be placed next to their corresponding JUnit test class  -->
                 <directory>${project.basedir}/src/test/java</directory>
             </testResource>
             <testResource>
@@ -313,7 +289,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.0</version>
                 <configuration>
                     <compilerArguments>
                         <Xlint/>
@@ -389,39 +365,49 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>${cobertura.version}</version>
+                <configuration>
+                    <check/>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
+                            <goal>clean</goal>
+                            <goal>check</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-    
-    <!-- REMOVED: The old Cobertura plugin configuration which was causing issues with modern Java. 
-         JaCoCo is now used in the <build> section. -->
+    <reporting>
+        <plugins>
 
+            <!--  integrate maven-cobertura-plugin to project site  -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>${cobertura.version}</version>
+                <configuration>
+                    <formats>
+                        <format>html</format>
+                    </formats>
+                    <check/>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
     <profiles>
 		<profile>
 			<id>bower-install</id>
-			<build>
+  			<build>
 			<plugins>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>exec-maven-plugin</artifactId>
-					<version>1.4.0</version>
+                    <version>1.4.0</version>
 					<executions>
 						<execution>
 							<phase>generate-sources</phase>
@@ -439,7 +425,7 @@
 					</configuration>
 				</plugin>
 			</plugins>
-			</build>
+		  </build>
 		</profile>
         <profile>
             <id>less-install</id>
@@ -468,7 +454,7 @@
                 </plugins>
             </build>
         </profile>
-    </profiles>
+   </profiles>
 
     <url>demopetclinic</url>
 </project>
